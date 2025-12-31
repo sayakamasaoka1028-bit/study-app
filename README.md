@@ -51,8 +51,8 @@
 ## スクリーンショット
 
 ![dashboard](public/images/dashboard.png)
-![line-notification](public/images/line-notification.png)
-![buy-result](public/images/buy-result.png)
+![line-notification](public/images/line-notification.jpg)
+![buy-result](public/images/buy-result.jpg)
 
 
 ---

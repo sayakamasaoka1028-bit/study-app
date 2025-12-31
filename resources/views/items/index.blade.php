@@ -18,8 +18,10 @@
     <tbody>
         @foreach ($items as $item)
         <tr>
+            <!-- 備品名 -->
             <td>{{ $item->name }}</td>
 
+            <!-- 在庫数 -->
             <td>
                 @if ($item->quantity <= 1)
                     <span style="color:red; font-weight:bold;">
@@ -30,34 +32,32 @@
                 @endif
             </td>
 
+            <!-- 操作（管理者のみ） -->
             <td>
-                {{-- 使った --}}
-                <form method="POST"
-                      action="{{ route('items.use', $item) }}"
-                      style="display:inline;">
-                    @csrf
-                    <button type="submit">使った</button>
-                </form>
-               {{-- 在庫を増やす --}}
-                <form method="POST"
-                      action="{{ route('items.add', $item) }}"
-                      style="display:inline;">
-                    @csrf
-                    <button type="submit">＋</button>
-                </form>
+                @can('admin')
+                <div class="item-actions">
+                    <!-- 減らす -->
+                    <form method="POST" action="{{ route('items.decrease', $item) }}">
+                        @csrf
+                        <button class="btn use">使った</button>
+                    </form>
 
+                    <!-- 増やす -->
+                    <form method="POST" action="{{ route('items.increase', $item) }}">
+                        @csrf
+                        <button class="btn add">＋ 追加</button>
+                    </form>
 
-                {{-- 削除 --}}
-                <form method="POST"
-                      action="{{ route('items.destroy', $item) }}"
-                      style="display:inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            onclick="return confirm('削除しますか？')">
-                        削除
-                    </button>
-                </form>
+                    <!-- 削除 -->
+                    <form method="POST"
+                          action="{{ route('items.destroy', $item) }}"
+                          onsubmit="return confirm('削除していい？')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn delete">削除</button>
+                    </form>
+                </div>
+                @endcan
             </td>
         </tr>
         @endforeach

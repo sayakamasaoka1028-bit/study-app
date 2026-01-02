@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\BuyController;
 use App\Http\Controllers\LineWebhookController;
+use App\Http\Controllers\LineLoginController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,3 +43,15 @@ Route::post('/line/webhook', [LineWebhookController::class, 'handle']);
 // 買い物ボタン
 Route::get('/buy/{item}/yes', [BuyController::class, 'yes'])->name('buy.yes');
 Route::get('/buy/{item}/no',  [BuyController::class, 'no'])->name('buy.no');
+
+//Route::get('/line/login', function () {
+   // return 'LINE連携はこれから実装します';
+//})->name('line.login');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/line/login', [LineLoginController::class, 'redirect'])
+        ->name('line.login');
+});
+
+Route::get('/line/callback', [LineLoginController::class, 'callback'])
+    ->name('line.callback');

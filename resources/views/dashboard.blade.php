@@ -2,10 +2,17 @@
 
 @section('content')
 <div class="max-w-5xl mx-auto p-6 space-y-6 bg-pink-50 rounded-2xl">
+<!-- ヘッダー -->
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold text-pink-700">🏠 家のダッシュボード</h1>
 
-  <!-- ヘッダー -->
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-pink-700">🏠 家のダッシュボード</h1>
+  <div class="flex gap-2">
+    <!-- LINE連携ボタン -->
+    <a href="{{ route('line.login') }}"
+       class="px-4 py-2 bg-green-500 hover:bg-green-600
+              text-white rounded-lg shadow">
+      LINEと連携する
+    </a>
 
     <!-- ログアウトボタン -->
     <form method="POST" action="{{ route('logout') }}">
@@ -18,6 +25,8 @@
       </button>
     </form>
   </div>
+</div>
+
 
   <!-- 📦 在庫一覧 -->
   <section class="bg-white rounded-xl shadow p-4 border border-pink-200">

@@ -35,8 +35,8 @@ return [
         ],
     ],
 // 👇 これを追加するだけ！！
-    'line' => [
-        'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
-    ],
+'line' => [
+    'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
+],
 
 ];

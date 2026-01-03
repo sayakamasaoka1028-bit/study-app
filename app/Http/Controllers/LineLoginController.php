@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 
 class LineLoginController extends Controller
@@ -12,7 +11,6 @@ class LineLoginController extends Controller
      */
     public function redirect()
     {
-        // ⚠️ 今はまだ押さない前提
         return Socialite::driver('line')->redirect();
     }
 
@@ -21,7 +19,10 @@ class LineLoginController extends Controller
      */
     public function callback()
     {
-        // まだ実装しない（次回）
-        return 'LINEから戻ってきた予定';
+$lineUser = Socialite::driver('line')->user();
+        return response()->json([
+            'line_id' => $lineUser->getId(),
+            'name'    => $lineUser->getName(),
+        ]);
     }
 }

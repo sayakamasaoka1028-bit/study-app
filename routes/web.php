@@ -12,7 +12,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// 認証必須
+// ===============================
+// 認証必須（通常ログイン後）
+// ===============================
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -28,30 +30,31 @@ Route::middleware('auth')->group(function () {
     Route::post('/items/{item}/decrease', [ItemController::class, 'decrease'])->name('items.decrease');
     Route::delete('/items/{item}', [ItemController::class, 'destroy'])->name('items.destroy');
 
-    // LINE連携
+    // LINE Bot 追加（友だち追加用）
     Route::post('/line/link', function () {
         return redirect()->away('https://line.me/R/ti/p/@517uosmr');
     })->name('line.link');
 });
 
-// 🔴 これが無いと login が消える
+// 🔴 これが無いと通常ログインが消える
 require __DIR__.'/auth.php';
 
-// LINE webhook
+// ===============================
+// LINE Webhook（通知用）
+// ===============================
 Route::post('/line/webhook', [LineWebhookController::class, 'handle']);
 
-// 買い物ボタン
+// ===============================
+// 買い物ボタン（LINEから）
+// ===============================
 Route::get('/buy/{item}/yes', [BuyController::class, 'yes'])->name('buy.yes');
 Route::get('/buy/{item}/no',  [BuyController::class, 'no'])->name('buy.no');
 
-//Route::get('/line/login', function () {
-   // return 'LINE連携はこれから実装します';
-//})->name('line.login');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/line/login', [LineLoginController::class, 'redirect'])
-        ->name('line.login');
-});
+// ===============================
+// LINE Login（未ログインOK）★重要
+// ===============================
+Route::get('/line/login', [LineLoginController::class, 'redirect'])
+    ->name('line.login');
 
 Route::get('/line/callback', [LineLoginController::class, 'callback'])
     ->name('line.callback');

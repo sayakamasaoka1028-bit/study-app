@@ -1,3 +1,32 @@
+# Study App
+
+家族で利用できる在庫管理アプリです。  
+Laravelで開発し、LINEログイン機能を実装しています。
+
+## LINEログイン機能
+LINEアカウントを利用してログインできます。
+
+![LINEログイン画面](screenshots/line-login.png)
+
+### LINE認可画面
+![LINE認可画面](screenshots/line-consent.jpg)
+
+### ログイン後画面
+![Dashboard](screenshots/dashboard.png)
+
+## 使用技術
+- Laravel
+- SQLite
+- LINE Login API
+- ngrok
+
+
+## 主な機能
+- LINEログインによるユーザー認証
+- 家庭用品の在庫管理（追加・増減）
+- 在庫状況の一覧表示
+
+---
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

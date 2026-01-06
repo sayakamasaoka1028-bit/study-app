@@ -2,49 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Str;
 
 class LineLoginController extends Controller
 {
+    /**
+     * LINEログインへリダイレクト
+     */
     public function redirect()
     {
-        return Socialite::driver('line')->redirect();
+        // ★ stateless を使わない（state を正しく使う）
+        return Socialite::driver('line')
+            ->scopes(['openid', 'profile'])
+            ->redirect();
     }
 
+    /**
+     * LINEログインのコールバック
+     */
     public function callback()
     {
-        $lineUser = Socialite::driver('line')->stateless()->user();
-        $lineId   = $lineUser->getId();
-        $email    = 'line_' . $lineId . '@example.com';
+        // ★ stateful のまま受け取る
+        $lineUser = Socialite::driver('line')->user();
 
-        // ① line_user_id で探す
-        $user = User::where('line_user_id', $lineId)->first();
+        $lineId = $lineUser->getId();
 
-        // ② 見つからなければ email で探す（過去の残骸対策）
-        if (!$user) {
-            $user = User::where('email', $email)->first();
+        if (!$lineId) {
+            abort(500, 'LINEユーザーIDが取得できませんでした');
         }
 
-        // ③ それでもなければ新規作成
+        // すでにログイン中のユーザーに紐づけ
+        $user = Auth::user();
+
         if (!$user) {
-            $user = User::create([
-                'name' => $lineUser->getName() ?? 'LINEユーザー',
-                'email' => $email,
-                'password' => bcrypt(Str::random(32)),
-                'line_user_id' => $lineId,
-            ]);
-        } else {
-            // ④ 既存ユーザーに LINE ID を紐付け
-            if (!$user->line_user_id) {
-                $user->update(['line_user_id' => $lineId]);
-            }
+            abort(403, 'ログイン中のユーザーがいません');
         }
 
-        Auth::login($user);
+        $user->line_user_id = $lineId;
+        $user->save();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard')
+            ->with('success', 'LINE連携が完了しました');
     }
 }

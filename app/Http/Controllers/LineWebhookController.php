@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
 class LineWebhookController extends Controller
 {
@@ -21,19 +20,19 @@ class LineWebhookController extends Controller
                 continue;
             }
 
-            // ① すでにこの LINE ID が使われてたら何もしない
+            // ① すでに登録済みなら何もしない
             if (User::where('line_user_id', $lineUserId)->exists()) {
                 continue;
             }
 
-            // ② ログイン中ユーザーがいれば、その人に紐づけ
-            $user = Auth::user();
+            // ② 直近で更新されたユーザーに紐づけ
+            $user = User::orderBy('updated_at', 'desc')->first();
 
-            if ($user && !$user->line_user_id) {
+            if ($user) {
                 $user->line_user_id = $lineUserId;
                 $user->save();
 
-                logger()->info('LINE linked', [
+                logger()->info('LINE user linked automatically', [
                     'user_id' => $user->id,
                     'line_user_id' => $lineUserId,
                 ]);
@@ -43,3 +42,4 @@ class LineWebhookController extends Controller
         return response('OK', 200);
     }
 }
+

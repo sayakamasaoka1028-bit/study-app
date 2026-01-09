@@ -8,62 +8,44 @@ use Illuminate\Support\Facades\Http;
 class LineNotifyService
 {
     /**
-     * 🔴 在庫切れ通知（ボタン付き）
+     * 🔴 在庫切れ通知（家族全員に一斉送信・ボタンなし）
      */
-    public static function sendOutOfStock(string $itemName, int $itemId): void
+    public static function sendToAll(string $message): void
     {
         $token = config('services.line.channel_access_token');
         if (!$token) return;
 
-        $users = User::whereNotNull('line_user_id')->get();
+        // 家族全員の line_user_id を取得
+        $userIds = User::whereNotNull('line_user_id')
+            ->pluck('line_user_id')
+            ->unique()
+            ->values()
+            ->toArray();
 
-        foreach ($users as $user) {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $token,
-                'Content-Type'  => 'application/json',
-            ])->post('https://api.line.me/v2/bot/message/push', [
-                'to' => $user->line_user_id,
-                'messages' => [
-                    [
-                        'type' => 'text',
-                        'text' => "⚠️ 在庫切れ\n{$itemName}\n⏰ " . now()->format('Y-m-d H:i:s'),
-                    ],
-                    [
-                        'type' => 'template',
-                        'altText' => '在庫切れ通知',
-                        'template' => [
-                            'type' => 'buttons',
-                            'title' => '在庫切れ',
-                            'text' => "{$itemName} が無くなりました",
-                            'actions' => [
-                                [
-                                    'type' => 'uri',
-                                    'label' => '🛒 買ってきます',
-                                    'uri' => config('app.url')
-                                        . "/buy/{$itemId}/yes?line_user_id={$user->line_user_id}",
-                                ],
-                                [
-                                    'type' => 'uri',
-                                    'label' => '🙅‍♀️ 買ってきません',
-                                    'uri' => config('app.url')
-                                        . "/buy/{$itemId}/no?line_user_id={$user->line_user_id}",
-                                ],
-                            ],
-                        ],
-                    ],
+        if (count($userIds) === 0) return;
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type'  => 'application/json',
+        ])->post('https://api.line.me/v2/bot/message/multicast', [
+            'to' => $userIds,
+            'messages' => [
+                [
+                    'type' => 'text',
+                    'text' => $message,
                 ],
-            ]);
+            ],
+        ]);
 
-            logger()->info('LINE push debug (out_of_stock)', [
-                'user_id' => $user->id,
-                'status'  => $response->status(),
-                'body'    => $response->body(),
-            ]);
-        }
+        logger()->info('LINE multicast debug', [
+            'count'  => count($userIds),
+            'status' => $response->status(),
+            'body'   => $response->body(),
+        ]);
     }
 
     /**
-     * ✅ 汎用メッセージ送信（買ってきます後の通知用）
+     * ✅ 個別メッセージ送信（誰かが「買ってきます」押した後など）
      */
     public static function send(string $message, string $lineUserId): void
     {
@@ -83,7 +65,7 @@ class LineNotifyService
             ],
         ]);
 
-        logger()->info('LINE push debug (send)', [
+        logger()->info('LINE push debug', [
             'to'     => $lineUserId,
             'status' => $response->status(),
             'body'   => $response->body(),

@@ -1,25 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* ここから追記 */
-@layer components {
-    .item-actions {
-        @apply flex flex-col gap-2;
-    }
-
-    .btn {
-        @apply w-full py-3 text-base rounded-lg text-white;
-    }
-
-    .btn.use {
-        @apply bg-green-500;
-    }
-
-    .btn.add {
-        @apply bg-blue-500;
-    }
-
-    .btn.delete {
-        @apply bg-red-500;
-    }
-}

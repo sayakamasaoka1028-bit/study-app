@@ -4,45 +4,36 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
+use App\Models\User;
 
 class LineLoginController extends Controller
 {
-    /**
-     * LINEログインへリダイレクト
-     */
+    // LINEログイン開始
     public function redirect()
     {
-        // ★ stateless を使わない（state を正しく使う）
-        return Socialite::driver('line')
-            ->scopes(['openid', 'profile'])
-            ->redirect();
+        return Socialite::driver('line')->redirect();
     }
 
-    /**
-     * LINEログインのコールバック
-     */
+    // LINEログイン後コールバック
     public function callback()
     {
-        // ★ stateful のまま受け取る
         $lineUser = Socialite::driver('line')->user();
 
-        $lineId = $lineUser->getId();
-
-        if (!$lineId) {
-            abort(500, 'LINEユーザーIDが取得できませんでした');
-        }
-
-        // すでにログイン中のユーザーに紐づけ
-        $user = Auth::user();
+        // email でユーザー取得
+        $user = auth()->user();
 
         if (!$user) {
-            abort(403, 'ログイン中のユーザーがいません');
+            abort(403, 'ユーザーが存在しません');
         }
 
-        $user->line_user_id = $lineId;
-        $user->save();
+        // LINE userId 保存
+        $user->update([
+            'line_user_id' => $lineUser->id,
+        ]);
 
-        return redirect()->route('dashboard')
-            ->with('success', 'LINE連携が完了しました');
+        // ログイン状態にする
+        Auth::login($user);
+
+        return redirect('/');
     }
 }

@@ -11,27 +11,35 @@ class LineWebhookController extends Controller
     {
         logger()->info('LINE webhook raw', $request->all());
 
-        $event = $request->input('events.0');
-        if (!$event) {
-            return response('OK', 200);
+        $events = $request->input('events', []);
+
+        foreach ($events as $event) {
+
+            $lineUserId = data_get($event, 'source.userId');
+            if (!$lineUserId) {
+                continue;
+            }
+
+            // ① すでに登録済みなら何もしない
+            if (User::where('line_user_id', $lineUserId)->exists()) {
+                continue;
+            }
+
+            // ② 直近で更新されたユーザーに紐づけ
+            $user = User::orderBy('updated_at', 'desc')->first();
+
+            if ($user) {
+                $user->line_user_id = $lineUserId;
+                $user->save();
+
+                logger()->info('LINE user linked automatically', [
+                    'user_id' => $user->id,
+                    'line_user_id' => $lineUserId,
+                ]);
+            }
         }
-
-        $lineUserId = data_get($event, 'source.userId');
-        if (!$lineUserId) {
-            return response('OK', 200);
-        }
-
-        // ★ ここが超重要
-        // example1111@gmail.com のユーザーに固定で紐づける
-        User::where('email', 'example1111@gmail.com')->update([
-            'line_user_id' => $lineUserId,
-        ]);
-
-        logger()->info('LINE user linked', [
-            'email' => 'example1111@gmail.com',
-            'line_user_id' => $lineUserId,
-        ]);
 
         return response('OK', 200);
     }
 }
+

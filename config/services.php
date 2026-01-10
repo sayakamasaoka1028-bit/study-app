@@ -34,9 +34,14 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-// 👇 これを追加するだけ！！
-    'line' => [
-        'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
-    ],
+'line' => [
+    // LINE Login
+    'client_id' => env('LINE_CLIENT_ID'),
+    'client_secret' => env('LINE_CLIENT_SECRET'),
+    'redirect' => env('LINE_REDIRECT_URI'),
+
+    // LINE Bot（★ここを追加）
+    'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
+],
 
 ];

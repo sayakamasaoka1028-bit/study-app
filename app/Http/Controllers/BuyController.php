@@ -12,50 +12,48 @@ class BuyController extends Controller
 {
     /**
      * 🛒 「買ってきます」（LINEボタン）
+     * ※ Webhook 経由なので line_user_id は request から直接取る
      */
     public function yes(Item $item, Request $request)
     {
-        return $this->accept($item, $request);
-    }
+        // ★ LINE Webhook から来た userId（唯一の正解）
+        $lineUserId = $request->input('line_user_id');
 
-    /**
-     * 🙅‍♀️ 「買ってきません」
-     */
-    public function no(Item $item)
-    {
-        // LINE用：画面遷移しない
-        return response('ok');
-    }
+        if (!$lineUserId) {
+            logger()->warning('LINE userId not found');
+            return response('NG', 400);
+        }
 
-    /**
-     * ✅ 確定処理（LINE前提）
-     */
-    public function accept(Item $item, Request $request)
-    {
-        // LINEの userId
-        $lineUserId = $request->query('line_user_id');
-
+        // 押した本人
         $buyer = User::where('line_user_id', $lineUserId)->first();
-        $buyerName = $buyer?->nickname ?? $buyer?->name ?? '誰か';
+
+        if (!$buyer) {
+            logger()->warning('User not linked', ['line_user_id' => $lineUserId]);
+            return response('NG', 400);
+        }
 
         // purchases に記録
         Purchase::create([
             'item_id' => $item->id,
             'status' => 'accepted',
-            'accepted_by' => $buyer?->id,
+            'accepted_by' => $buyer->id,
             'last_notified_at' => now(),
         ]);
 
-        // LINE通知（全員）
-        $users = User::whereNotNull('line_user_id')->get();
-        foreach ($users as $user) {
-            LineNotifyService::send(
-                "🛒 {$item->name} は「{$buyerName}」が買ってきます",
-                $user->line_user_id
-            );
-        }
+        // 全員に LINE 通知
+        LineNotifyService::sendToAll(
+            "🛒 {$buyer->name} が\n「{$item->name}」を買います！"
+        );
 
-        // 🔴 ここが重要：リダイレクトしない
+        return response('OK');
+    }
+
+    /**
+     * 🙅‍♀️ 買わない（今は何もしない）
+     */
+    public function no(Item $item)
+    {
         return response('OK');
     }
 }
+

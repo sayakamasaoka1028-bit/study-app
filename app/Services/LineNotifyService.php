@@ -67,9 +67,9 @@ class LineNotifyService
                         'text' => "📦 在庫切れ\n{$itemName}\n誰か買ってきますか？",
                         'actions' => [
                             [
-                                'type'  => 'uri',
+                                'type'  => 'postback',
                                 'label' => '🛒 買ってきます',
-                                'uri'   => url("/items/{$itemId}/buy"),
+                                'data'  => "action=buy&item_id={$itemId}",
                             ],
                         ],
                     ],

@@ -1,17 +1,20 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+@section('content')
+    <h1 class="text-xl font-bold mb-4">📊 ダッシュボード</h1>
+
+    <p>ログイン中：{{ auth()->user()->name }}</p>
+
+    <hr class="my-4">
+
+    <h3>📱 LINE連携状態</h3>
+
+    @if(auth()->user()->line_user_id)
+        <p class="text-green-600">✅ LINE連携済み（通知可能）</p>
+    @else
+        <p class="text-red-600">⚠️ LINE未連携</p>
+        <a href="{{ route('line.login') }}" class="text-blue-600 underline">
+            LINE連携する
+        </a>
+    @endif
+@endsection

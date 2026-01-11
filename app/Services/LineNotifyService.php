@@ -8,14 +8,13 @@ use Illuminate\Support\Facades\Http;
 class LineNotifyService
 {
     /**
-     * 🔴 在庫切れ通知（家族全員に一斉送信・ボタンなし）
+     * 🔴 テキスト通知（家族全員）
      */
     public static function sendToAll(string $message): void
     {
         $token = config('services.line.channel_access_token');
         if (!$token) return;
 
-        // 家族全員の line_user_id を取得
         $userIds = User::whereNotNull('line_user_id')
             ->pluck('line_user_id')
             ->unique()
@@ -24,7 +23,7 @@ class LineNotifyService
 
         if (count($userIds) === 0) return;
 
-        $response = Http::withHeaders([
+        Http::withHeaders([
             'Authorization' => 'Bearer ' . $token,
             'Content-Type'  => 'application/json',
         ])->post('https://api.line.me/v2/bot/message/multicast', [
@@ -36,39 +35,46 @@ class LineNotifyService
                 ],
             ],
         ]);
-
-        logger()->info('LINE multicast debug', [
-            'count'  => count($userIds),
-            'status' => $response->status(),
-            'body'   => $response->body(),
-        ]);
     }
 
     /**
-     * ✅ 個別メッセージ送信（誰かが「買ってきます」押した後など）
+     * 🔴 在庫切れ通知（LINE → Web遷移）
      */
-    public static function send(string $message, string $lineUserId): void
+    public static function sendOutOfStock(string $itemName, int $itemId): void
     {
         $token = config('services.line.channel_access_token');
         if (!$token) return;
 
-        $response = Http::withHeaders([
+        $userIds = User::whereNotNull('line_user_id')
+            ->pluck('line_user_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        if (count($userIds) === 0) return;
+
+        Http::withHeaders([
             'Authorization' => 'Bearer ' . $token,
             'Content-Type'  => 'application/json',
-        ])->post('https://api.line.me/v2/bot/message/push', [
-            'to' => $lineUserId,
+        ])->post('https://api.line.me/v2/bot/message/multicast', [
+            'to' => $userIds,
             'messages' => [
                 [
-                    'type' => 'text',
-                    'text' => $message,
+                    'type' => 'template',
+                    'altText' => '在庫切れ通知',
+                    'template' => [
+                        'type' => 'buttons',
+                        'text' => "📦 在庫切れ\n{$itemName}\n誰か買ってきますか？",
+                        'actions' => [
+                            [
+                                'type'  => 'uri',
+                                'label' => '🛒 買ってきます',
+                                'uri'   => url("/items/{$itemId}/buy"),
+                            ],
+                        ],
+                    ],
                 ],
             ],
-        ]);
-
-        logger()->info('LINE push debug', [
-            'to'     => $lineUserId,
-            'status' => $response->status(),
-            'body'   => $response->body(),
         ]);
     }
 }

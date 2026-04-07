@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
 class LineLoginController extends Controller
@@ -18,9 +19,12 @@ class LineLoginController extends Controller
     {
         $lineUser = Socialite::driver('line')->user();
 
-        // まずは取得できているか確認
-        dd($lineUser);
+        $user = Auth::user();
+
+        // LINEユーザーIDを保存
+        $user->line_user_id = $lineUser->getId();
+        $user->save();
+
+        return redirect('/dashboard')->with('success', 'LINE連携完了！');
     }
 }
-
-

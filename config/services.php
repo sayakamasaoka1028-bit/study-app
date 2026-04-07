@@ -36,12 +36,11 @@ return [
     ],
 'line' => [
     // LINE Login
-    'client_id' => env('LINE_CLIENT_ID'),
-    'client_secret' => env('LINE_CLIENT_SECRET'),
-    'redirect' => env('LINE_REDIRECT_URI'),
+    'client_id' => env('LINE_LOGIN_CHANNEL_ID'),
+    'client_secret' => env('LINE_LOGIN_CHANNEL_SECRET'),
+    'redirect' => env('APP_URL') . '/login/line/callback',
 
-    // LINE Bot（★ここを追加）
+    // LINE Bot
     'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
 ],
-
 ];
